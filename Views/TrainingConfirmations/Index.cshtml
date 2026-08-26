@@ -1,0 +1,49 @@
+@model IEnumerable<TrainingConfirmation>
+@{ ViewData["Title"] = "Client Training Confirmation"; ViewData["Subtitle"] = "Client Confirmation > Overview"; }
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-pencil-square"></i> Client Training Confirmation</div>
+        <a asp-action="Index" asp-controller="TrainingSessions" class="btn btn-brand btn-sm"><i class="bi bi-plus-lg"></i> New Confirmation</a>
+    </div>
+
+    <form method="get" class="d-flex gap-2 mb-3 flex-wrap">
+        <input type="text" class="form-control form-control-sm" style="max-width:260px" placeholder="Search confirmations..." disabled />
+        <select class="form-select form-select-sm" style="max-width:160px" disabled><option>All Status</option></select>
+        <button type="button" class="btn btn-sm btn-brand" disabled><i class="bi bi-funnel"></i> Filter</button>
+    </form>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-file-earmark-x d-block mb-2"></i>
+            <p class="mb-3">No confirmations found.</p>
+            <a asp-action="Index" asp-controller="TrainingSessions" class="btn btn-brand"><i class="bi bi-plus-lg"></i> Create Your First Confirmation</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Confirmation ID</th><th>Company</th><th>Module</th><th>Trainer</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td class="fw-bold">#@c.Id.ToString("D5")</td>
+                    <td>@c.TrainingSession?.Company?.Name</td>
+                    <td>@c.TrainingSession?.Module</td>
+                    <td>@c.TrainingSession?.Trainer?.Name</td>
+                    <td>@c.SubmittedDate.ToString("MMM/dd/yy")</td>
+                    <td><span class="badge badge-status-@c.Status.ToString().ToLower()">@c.Status</span></td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@c.Id" class="btn icon-btn btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
+                        <a asp-action="Certificate" asp-route-id="@c.Id" class="btn icon-btn btn-outline-brand" target="_blank" title="Print"><i class="bi bi-printer"></i></a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>

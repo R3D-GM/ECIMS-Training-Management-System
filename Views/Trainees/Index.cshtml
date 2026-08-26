@@ -1,0 +1,52 @@
+@model IEnumerable<Trainee>
+@{ ViewData["Title"] = "Trainee Management"; ViewData["Subtitle"] = "Manage all trainees"; }
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title">🎓 Trainee Management</div>
+    </div>
+
+    <form method="get" class="d-flex gap-2 mb-3 flex-wrap">
+        <input type="text" name="q" value="@ViewBag.Query" class="form-control form-control-sm" style="max-width:240px" placeholder="Search trainees..." />
+        <select name="status" class="form-select form-select-sm" style="max-width:160px">
+            <option value="">All Status</option>
+            <option value="Present" selected="@(ViewBag.Status?.ToString() == "Present")">Present</option>
+            <option value="Absent" selected="@(ViewBag.Status?.ToString() == "Absent")">Absent</option>
+        </select>
+        <button type="submit" class="btn btn-sm btn-brand"><i class="bi bi-funnel"></i> Filter</button>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+    </form>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-people d-block mb-2"></i><p class="mb-0">No trainees found.</p></div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>ID</th><th>Name</th><th>Company</th><th>Position</th><th>Phone</th><th>Attendance</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var t in Model)
+            {
+                <tr>
+                    <td class="fw-bold">#@t.Id.ToString("D3")</td>
+                    <td>@t.Name</td>
+                    <td>@t.TrainingSession?.Company?.Name</td>
+                    <td>@t.Position</td>
+                    <td>@t.Phone</td>
+                    <td><span class="badge badge-status-@t.Attendance.ToString().ToLower()">@t.Attendance</span></td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@t.Id" class="btn icon-btn btn-outline-brand" title="Edit"><i class="bi bi-pencil"></i></a>
+                        <form asp-action="Delete" asp-route-id="@t.Id" method="post" class="d-inline" onsubmit="return confirm('Remove this trainee?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn icon-btn btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,279 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["Subtitle"] = "Welcome, " + (ViewBag.CurrentUser?.FullName ?? "");
+    string role = ViewBag.Role;
+    bool showTraining = TCS.Models.Roles.TrainingModuleRoles.Contains(role);
+    bool showUat = TCS.Models.Roles.UatModuleRoles.Contains(role);
+}
+
+@if (showTraining && showUat)
+{
+    <ul class="nav nav-tabs mb-3" id="dashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="trainings-tab" data-bs-toggle="tab" data-bs-target="#trainings-pane" type="button" role="tab" aria-selected="true">
+                <i class="bi bi-calendar3"></i> Trainings
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="uat-tab" data-bs-toggle="tab" data-bs-target="#uat-pane" type="button" role="tab" aria-selected="false">
+                <i class="bi bi-clipboard2-check"></i> UAT
+            </button>
+        </li>
+    </ul>
+}
+
+<div class="tab-content">
+<div class="tab-pane fade @(showTraining ? "show active" : "")" id="trainings-pane" role="tabpanel">
+@if (showTraining)
+{
+<div class="row g-3 mb-3">
+    @if (role is Roles.Admin or Roles.Consultant or Roles.ProjectManager or Roles.ContactPerson or Roles.Trainer)
+    {
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-top"><div class="stat-icon red"><i class="bi bi-calendar-check-fill"></i></div></div>
+                <div class="stat-value">@Model.TotalSessions</div>
+                <div class="stat-label">Total Trainings</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-top"><div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div></div>
+                <div class="stat-value">@Model.CompletedSessions</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-top"><div class="stat-icon orange"><i class="bi bi-hourglass-split"></i></div></div>
+                <div class="stat-value">@Model.PendingConfirmations</div>
+                <div class="stat-label">Pending Confirmations</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-top"><div class="stat-icon blue"><i class="bi bi-clock-fill"></i></div></div>
+                <div class="stat-value">@Model.UpcomingSessions</div>
+                <div class="stat-label">Upcoming</div>
+            </div>
+        </div>
+    }
+    @if (role is Roles.Admin or Roles.ProjectManager)
+    {
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-top"><div class="stat-icon orange"><i class="bi bi-file-earmark-text-fill"></i></div></div>
+                <div class="stat-value">@Model.PendingSessionRequests</div>
+                <div class="stat-label">Pending Session Requests</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-top"><div class="stat-icon red"><i class="bi bi-check2-square"></i></div></div>
+                <div class="stat-value">@Model.PendingManagerApprovals</div>
+                <div class="stat-label">Awaiting My Approval</div>
+            </div>
+        </div>
+    }
+    @if (role is Roles.Admin or Roles.TransportManager)
+    {
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-top"><div class="stat-icon blue"><i class="bi bi-truck"></i></div></div>
+                <div class="stat-value">@Model.TotalTransportAssignments</div>
+                <div class="stat-label">Transport Assignments</div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (role is Roles.Admin or Roles.Consultant)
+{
+    <div class="panel">
+        <div class="panel-head"><div class="panel-title"><i class="bi bi-clipboard-data"></i> Quick Activities</div></div>
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-controller="TrainingSessions" asp-action="Create" class="btn btn-brand"><i class="bi bi-plus-lg"></i> Create New Training</a>
+            <a asp-controller="Trainers" asp-action="Create" class="btn btn-outline-secondary"><i class="bi bi-person-plus"></i> Add Trainer</a>
+            <a asp-controller="SessionRequests" asp-action="Create" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-plus"></i> New Session Request</a>
+        </div>
+    </div>
+}
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-calendar-event"></i> Training Overview</div>
+        <div class="d-flex gap-2">
+            <a asp-controller="TrainingSessions" asp-action="Index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i> View All</a>
+            @if (role is Roles.Admin or Roles.Consultant)
+            {
+                <a asp-controller="TrainingSessions" asp-action="Create" class="btn btn-sm btn-brand"><i class="bi bi-plus-lg"></i> New</a>
+            }
+        </div>
+    </div>
+
+    @if (!Model.UpcomingList.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-calendar-x d-block mb-2"></i>
+            <p class="mb-3">No training sessions found.</p>
+            @if (role is Roles.Admin or Roles.Consultant)
+            {
+                <a asp-controller="TrainingSessions" asp-action="Create" class="btn btn-brand"><i class="bi bi-plus-lg"></i> Create Your First Training</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Module</th><th>Trainer</th><th>Location</th><th>Date</th><th>Duration</th><th>Status</th></tr></thead>
+            <tbody>
+            @foreach (var s in Model.UpcomingList)
+            {
+                <tr>
+                    <td class="fw-semibold">@s.Module</td>
+                    <td>@s.Trainer?.Name</td>
+                    <td>@s.Location</td>
+                    <td>@s.TrainingDate.ToString("MMM/dd/yy")</td>
+                    <td>@s.Duration hrs</td>
+                    <td><span class="badge badge-status-@s.Status.ToString().ToLower()">@s.Status</span></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>
+
+<div class="panel">
+    <div class="panel-head"><div class="panel-title"><i class="bi bi-file-earmark-check"></i> Recent Confirmations</div></div>
+    @if (!Model.RecentConfirmations.Any())
+    {
+        <div class="empty-state"><i class="bi bi-file-earmark-x d-block mb-2"></i><p class="mb-0">No confirmations yet.</p></div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Company</th><th>Module</th><th>Status</th></tr></thead>
+            <tbody>
+            @foreach (var c in Model.RecentConfirmations)
+            {
+                <tr>
+                    <td>@c.TrainingSession?.Company?.Name</td>
+                    <td>@c.TrainingSession?.Module</td>
+                    <td><span class="badge badge-status-@c.Status.ToString().ToLower()">@c.Status</span></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>
+}
+</div>
+
+<div class="tab-pane fade @(showUat && !showTraining ? "show active" : "")" id="uat-pane" role="tabpanel">
+@if (showUat)
+{
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-top"><div class="stat-icon red"><i class="bi bi-clipboard2-data-fill"></i></div></div>
+                <div class="stat-value">@Model.TotalUatProjects</div>
+                <div class="stat-label">Total UAT Projects</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-top"><div class="stat-icon orange"><i class="bi bi-hourglass-split"></i></div></div>
+                <div class="stat-value">@Model.UatInReview</div>
+                <div class="stat-label">In Review / Awaiting Signature</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-top"><div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div></div>
+                <div class="stat-value">@Model.UatCompleted</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-top"><div class="stat-icon blue"><i class="bi bi-unlock-fill"></i></div></div>
+                <div class="stat-value">@Model.CompaniesReadyForUat</div>
+                <div class="stat-label">Companies Ready for UAT</div>
+            </div>
+        </div>
+    </div>
+
+    @if (role is Roles.Admin or Roles.Consultant or Roles.ProjectManager)
+    {
+        <div class="panel">
+            <div class="panel-head"><div class="panel-title"><i class="bi bi-signpost-split"></i> Company Readiness (Training &rarr; UAT)</div></div>
+            <p class="text-muted small mb-3">A company only moves into UAT once every training booked for it is completed.</p>
+            <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>Company</th><th>Status</th><th>UAT Projects</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var c in Model.CompanyReadiness)
+                {
+                    <tr>
+                        <td class="fw-semibold">@c.CompanyName</td>
+                        <td>
+                            @if (c.IsReady)
+                            {
+                                <span class="badge badge-status-completed"><i class="bi bi-unlock-fill"></i> Ready for UAT</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-status-pending"><i class="bi bi-lock-fill"></i> Locked - @c.PendingTrainings training(s) pending</span>
+                            }
+                        </td>
+                        <td>@c.UatProjectCount</td>
+                        <td>
+                            @if (c.IsReady)
+                            {
+                                <a asp-controller="UatProjects" asp-action="Create" asp-route-companyId="@c.CompanyId" class="btn btn-sm btn-brand"><i class="bi bi-plus-lg"></i> New UAT Project</a>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            </div>
+        </div>
+    }
+
+    <div class="panel">
+        <div class="panel-head">
+            <div class="panel-title"><i class="bi bi-clipboard2-check"></i> UAT Projects</div>
+            <a asp-controller="UatProjects" asp-action="Index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i> View All</a>
+        </div>
+        @if (!Model.RecentUatProjects.Any())
+        {
+            <div class="empty-state"><i class="bi bi-clipboard2-x d-block mb-2"></i><p class="mb-0">No UAT projects yet.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>Project</th><th>Company</th><th>Status</th></tr></thead>
+                <tbody>
+                @foreach (var p in Model.RecentUatProjects)
+                {
+                    <tr>
+                        <td class="fw-semibold">@p.ProjectName</td>
+                        <td>@p.CompanyBranch?.Company?.Name</td>
+                        <td><span class="badge badge-status-@p.Status.ToString().ToLower()">@p.Status</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            </div>
+        }
+    </div>
+}
+</div>
+</div>

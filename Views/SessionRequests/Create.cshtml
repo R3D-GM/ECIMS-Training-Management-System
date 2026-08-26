@@ -1,0 +1,38 @@
+@model SessionRequest
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{ ViewData["Title"] = "New Session Request"; var companies = (List<Company>)ViewBag.Companies; }
+
+<h5 class="mb-3"><i class="bi bi-file-earmark-text"></i> New Session Request</h5>
+<div class="card p-4" style="max-width:600px">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+        <div class="mb-3">
+            <label class="form-label">Company</label>
+            <select asp-for="CompanyId" class="form-select" asp-items="@(new SelectList(companies, "Id", "Name"))">
+                <option value="">-- Select Company --</option>
+            </select>
+        </div>
+        <div class="mb-3"><label class="form-label" asp-for="RequestedModule"></label><input asp-for="RequestedModule" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Location"></label><input asp-for="Location" class="form-control" placeholder="e.g. Bisrate Gebreal, or 'On-site Head Office'" /></div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="LocationType"></label>
+            <div class="d-flex gap-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="LocationType" id="locIndoor" value="Indoor" checked />
+                    <label class="form-check-label" for="locIndoor"><i class="bi bi-building"></i> Indoor <span class="text-muted small">(no transport needed)</span></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="LocationType" id="locOutdoor" value="Outdoor" />
+                    <label class="form-check-label" for="locOutdoor"><i class="bi bi-signpost-split"></i> Outdoor <span class="text-muted small">(transport required)</span></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3"><label class="form-label" asp-for="RequestedDate"></label><input asp-for="RequestedDate" type="date" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Notes">Notes / Justification</label><textarea asp-for="Notes" class="form-control" rows="3"></textarea></div>
+        <button type="submit" class="btn btn-brand">Submit for Approval</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

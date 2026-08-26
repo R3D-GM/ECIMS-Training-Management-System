@@ -1,0 +1,62 @@
+@model SignoffViewModel
+@{ ViewData["Title"] = "Sign-off"; ViewData["Subtitle"] = $"{Model.CompanyName} / {Model.BranchName} - {Model.ProjectName}"; }
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-pen"></i> UAT Sign-off</div>
+        @if (Model.IsCompleted)
+        {
+            <span class="badge badge-status-completed">Completed</span>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="row g-3 mb-3">
+        <div class="col-4"><div class="stat-card"><div class="stat-value">@Model.PassedCount</div><div class="stat-label">Passed</div></div></div>
+        <div class="col-4"><div class="stat-card"><div class="stat-value">@Model.FailedCount</div><div class="stat-label">Failed</div></div></div>
+        <div class="col-4"><div class="stat-card"><div class="stat-value">@Model.NAItems</div><div class="stat-label">N/A</div></div></div>
+    </div>
+
+    @if (Model.IsSigned)
+    {
+        <div class="alert alert-success">
+            Signed by <strong>@Model.SignerName</strong> on @Model.SignedDate?.ToString("MMM d, yyyy, h:mm tt").
+        </div>
+        @if (!string.IsNullOrEmpty(Model.SignatureImagePath))
+        {
+            <img src="@Model.SignatureImagePath" alt="Signature" style="max-width:260px;border:1px solid var(--border);border-radius:.5rem" />
+        }
+    }
+    else if (Model.CanCurrentUserSign)
+    {
+        <form asp-action="Sign" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="attemptId" value="@Model.AttemptId" />
+            <div class="mb-2 form-label small">Draw your signature below</div>
+            <div class="sig-pad-wrap mb-2"><canvas id="customerSig"></canvas></div>
+            <input type="hidden" name="signatureDataUrl" id="customerSigInput" />
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="clearCustomerSig">Clear</button>
+            <button type="submit" class="btn btn-sm btn-brand"><i class="bi bi-pen"></i> Sign &amp; Complete Project</button>
+        </form>
+    }
+    else
+    {
+        <div class="empty-state"><i class="bi bi-hourglass-split d-block mb-2"></i><p class="mb-0">Waiting for the Contact Person to sign.</p></div>
+    }
+
+    <a asp-controller="UatProjects" asp-action="Details" asp-route-id="@Model.UatProjectId" class="btn btn-outline-secondary mt-3">Back to Project</a>
+</div>
+
+@section Scripts {
+<script>
+    initSignaturePad('customerSig', 'customerSigInput', 'clearCustomerSig');
+</script>
+}

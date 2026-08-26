@@ -1,0 +1,181 @@
+@model TrainingConfirmation
+@{
+    ViewData["Title"] = "Confirmation #" + Model.Id.ToString("D5");
+    var session = Model.TrainingSession;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-file-earmark-check"></i> Confirmation #@Model.Id.ToString("D5")</h5>
+    <a asp-action="Certificate" asp-route-id="@Model.Id" target="_blank" class="btn btn-sm btn-outline-brand"><i class="bi bi-printer"></i> Print / PDF View</a>
+</div>
+
+<div class="card p-4">
+    <div class="d-flex justify-content-between border-bottom border-2 pb-2 mb-3" style="border-color:#7A1518 !important">
+        <h5 class="fw-bold text-uppercase mb-0" style="color:#7A1518">Client Training Confirmation</h5>
+        <span class="badge badge-status-@Model.Status.ToString().ToLower() align-self-start fs-6">@Model.Status</span>
+    </div>
+    <div class="d-flex justify-content-between small text-muted mb-3">
+        <span>Confirmation ID: #@Model.Id.ToString("D5")</span>
+        <span>Date Submitted: @Model.SubmittedDate.ToString("MMMM d, yyyy, h:mm tt")</span>
+    </div>
+
+    <div class="row g-3 mb-2">
+        <div class="col-md-6">
+            <div class="section-header">Company Information</div>
+            <div class="section-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-5">Company Name</dt><dd class="col-7">@session?.Company?.Name</dd>
+                    <dt class="col-5">Branch</dt><dd class="col-7">@session?.Company?.Branch</dd>
+                    <dt class="col-5">Training Location</dt><dd class="col-7">@session?.Location</dd>
+                    <dt class="col-5">Training Date</dt><dd class="col-7">@session?.TrainingDate.ToString("yyyy-MM-dd")</dd>
+                </dl>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="section-header">Training Details</div>
+            <div class="section-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-5">Module</dt><dd class="col-7">@session?.Module</dd>
+                    <dt class="col-5">Duration</dt><dd class="col-7">@session?.Duration hrs</dd>
+                    <dt class="col-5">Start Time</dt><dd class="col-7">@session?.StartTime</dd>
+                    <dt class="col-5">End Time</dt><dd class="col-7">@session?.EndTime</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-2">
+        <div class="col-md-6">
+            <div class="section-header">Trainer Information</div>
+            <div class="section-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-5">Trainer Name</dt><dd class="col-7">@session?.Trainer?.Name</dd>
+                    <dt class="col-5">Position</dt><dd class="col-7">@session?.Trainer?.Position</dd>
+                </dl>
+                @if (!string.IsNullOrEmpty(Model.TrainerSignaturePath))
+                {
+                    <div class="small text-muted mt-2">Signature</div>
+                    <img src="@Model.TrainerSignaturePath" class="sig-existing" />
+                }
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="section-header">Remarks</div>
+            <div class="section-body">
+                <p class="mb-0 small">@(string.IsNullOrEmpty(Model.Remarks) ? "—" : Model.Remarks)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-header">Trainee Information</div>
+    <div class="section-body mb-3">
+        @if (session != null && session.Trainees.Any())
+        {
+            <table class="table table-sm mb-0">
+                <thead><tr><th>#</th><th>Trainee Name</th><th>Position</th><th>Phone</th><th>Attendance</th></tr></thead>
+                <tbody>
+                @{ int i = 1; }
+                @foreach (var t in session.Trainees)
+                {
+                    <tr><td>@(i++)</td><td>@t.Name</td><td>@t.Position</td><td>@t.Phone</td><td>@t.Attendance</td></tr>
+                }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted small mb-0">No trainees registered on this session.</p>
+        }
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6 text-center">
+            <div class="fw-semibold small">Client Authorized Signature</div>
+            <div class="text-muted small mb-1">I confirm that the training has been successfully delivered and received.</div>
+            @if (!string.IsNullOrEmpty(Model.ContactPersonSignaturePath))
+            {
+                <img src="@Model.ContactPersonSignaturePath" class="sig-existing" />
+                <div class="small mt-1">@Model.ContactPersonName</div>
+            }
+            else
+            {
+                <div class="text-muted small fst-italic">Not yet signed</div>
+            }
+        </div>
+        <div class="col-md-6 text-center">
+            <div class="fw-semibold small">Trainer Signature</div>
+            <div class="small text-muted mb-1">@session?.Trainer?.Name</div>
+            @if (!string.IsNullOrEmpty(Model.TrainerSignaturePath))
+            {
+                <img src="@Model.TrainerSignaturePath" class="sig-existing" />
+            }
+            else
+            {
+                <div class="text-muted small fst-italic">Not yet signed</div>
+            }
+        </div>
+    </div>
+
+    @if (Model.ManagerApproval != null)
+    {
+        <div class="alert alert-success small mt-3 mb-0">
+            <i class="bi bi-check2-circle"></i> Approved by <strong>@Model.ManagerApproval.ManagerName</strong> on @Model.ManagerApproval.ApprovalDate.ToString("yyyy-MM-dd") (batch #@Model.ManagerApproval.Id)
+            @if (!string.IsNullOrEmpty(Model.ManagerApproval.Notes)) { <div>Notes: @Model.ManagerApproval.Notes</div> }
+        </div>
+    }
+</div>
+
+@* ---- Signature capture actions (not part of the printable certificate) ---- *@
+<div class="row g-3 mt-1">
+    @if (string.IsNullOrEmpty(Model.TrainerSignaturePath) && (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Trainer)))
+    {
+        <div class="col-md-6">
+            <div class="section-header">Sign as Trainer</div>
+            <div class="section-body">
+                <div class="sig-pad-wrap"><canvas id="trainerSig"></canvas></div>
+                <form asp-action="SignTrainer" method="post" class="mt-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="signatureData" id="trainerSigInput" />
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="clearTrainerSig">Clear</button>
+                    <button type="submit" class="btn btn-sm btn-brand">Save Trainer Signature</button>
+                </form>
+            </div>
+        </div>
+    }
+
+    @if (Model.Status == ConfirmationStatus.Pending && (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.ContactPerson)))
+    {
+        <div class="col-md-6">
+            <div class="section-header">Client Sign-off</div>
+            <div class="section-body">
+                <form asp-action="SignContact" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <div class="mb-2">
+                        <label class="form-label small">Signatory Name</label>
+                        <input name="contactPersonName" class="form-control form-control-sm" value="@Model.ContactPersonName" required />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Remarks</label>
+                        <textarea name="remarks" class="form-control form-control-sm" rows="2">@Model.Remarks</textarea>
+                    </div>
+                    <div class="sig-pad-wrap mb-2"><canvas id="contactSig"></canvas></div>
+                    <input type="hidden" name="signatureData" id="contactSigInput" />
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="clearContactSig">Clear</button>
+                    <button type="submit" name="decision" value="Confirmed" class="btn btn-sm btn-brand">Approve &amp; Sign</button>
+                    <button type="submit" name="decision" value="Rejected" class="btn btn-sm btn-outline-danger">Reject</button>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+<a asp-action="Index" class="btn btn-outline-secondary mt-3">Back to list</a>
+
+@section Scripts {
+<script>
+    initSignaturePad('trainerSig', 'trainerSigInput', 'clearTrainerSig');
+    initSignaturePad('contactSig', 'contactSigInput', 'clearContactSig');
+</script>
+}

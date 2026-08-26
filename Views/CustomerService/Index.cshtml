@@ -1,0 +1,33 @@
+@model List<CsProjectListItem>
+@{ ViewData["Title"] = "Customer Service"; ViewData["Subtitle"] = "UAT projects forwarded to you for final review."; }
+
+<div class="panel">
+    <div class="panel-head"><div class="panel-title"><i class="bi bi-headset"></i> Forwarded UAT Projects</div></div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-inbox d-block mb-2"></i><p class="mb-0">Nothing has been forwarded to Customer Service yet.</p></div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Project</th><th>Company</th><th>Consultant</th><th>PM</th><th>Received</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">@p.ProjectName</td>
+                    <td>@p.CompanyName</td>
+                    <td>@p.ConsultantName</td>
+                    <td>@p.ProjectManagerName</td>
+                    <td>@p.ReceivedDate.ToString("MMM/dd/yy")</td>
+                    <td><span class="badge badge-status-@p.StatusCssClass">@p.StatusLabel</span></td>
+                    <td><a asp-controller="UatProjects" asp-action="Details" asp-route-id="@p.UatProjectId" class="btn icon-btn btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>

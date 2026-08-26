@@ -1,0 +1,130 @@
+@model SessionRequest
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{ ViewData["Title"] = "Review Session Request"; var vehicles = (List<Vehicle>)ViewBag.Vehicles; }
+
+<h5 class="mb-3"><i class="bi bi-file-earmark-text"></i> Session Request &mdash; @Model.Company?.Name</h5>
+
+<div class="section-header">Request Details</div>
+<div class="section-body mb-3">
+    <dl class="row mb-0 small">
+        <dt class="col-3">Company</dt><dd class="col-9">@Model.Company?.Name (@Model.Company?.Branch)</dd>
+        <dt class="col-3">Module</dt><dd class="col-9">@Model.RequestedModule</dd>
+        <dt class="col-3">Location</dt>
+        <dd class="col-9">
+            @Model.Location
+            @if (Model.LocationType == LocationType.Outdoor)
+            {
+                <span class="badge badge-status-pending ms-1"><i class="bi bi-signpost-split"></i> Outdoor</span>
+            }
+            else
+            {
+                <span class="badge badge-status-confirmed ms-1"><i class="bi bi-building"></i> Indoor</span>
+            }
+        </dd>
+        <dt class="col-3">Requested Date</dt><dd class="col-9">@Model.RequestedDate.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-3">Requested By</dt><dd class="col-9">@Model.RequestedBy</dd>
+        <dt class="col-3">Notes</dt><dd class="col-9">@Model.Notes</dd>
+        <dt class="col-3">Status</dt><dd class="col-9"><span class="badge badge-status-@Model.Status.ToString().ToLower()">@Model.Status</span></dd>
+        @if (Model.Status != RequestStatus.Pending)
+        {
+            <dt class="col-3">Decided By</dt><dd class="col-9">@Model.DecidedBy on @Model.DecidedDate?.ToString("yyyy-MM-dd HH:mm")</dd>
+        }
+    </dl>
+</div>
+
+@if (Model.LocationType == LocationType.Outdoor)
+{
+    <div class="section-header"><i class="bi bi-truck"></i> Transport</div>
+    <div class="section-body mb-3">
+        @if (Model.TransportAssignment == null)
+        {
+            <p class="text-muted small">This is an outdoor session — a vehicle must be assigned and approved by the Transport Manager before it can be approved.</p>
+            @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.ProjectManager))
+            {
+                <form asp-action="AssignTransport" method="post" class="row g-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="sessionRequestId" value="@Model.Id" />
+                    <div class="col-md-5">
+                        <select name="vehicleId" class="form-select form-select-sm" required>
+                            <option value="">-- Select Vehicle --</option>
+                            @foreach (var v in vehicles)
+                            {
+                                <option value="@v.Id">@v.PlateNumber - @v.Model (@v.DriverName)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-5"><input name="notes" class="form-control form-control-sm" placeholder="Notes (optional)" /></div>
+                    <div class="col-md-2"><button type="submit" class="btn btn-sm btn-brand w-100">Assign</button></div>
+                </form>
+            }
+        }
+        else if (Model.TransportAssignment.ApprovalStatus == TransportApprovalStatus.PendingApproval)
+        {
+            <div class="alert alert-warning mb-0">
+                <i class="bi bi-hourglass-split"></i> Vehicle <strong>@Model.TransportAssignment.Vehicle?.PlateNumber</strong>
+                (@Model.TransportAssignment.Vehicle?.DriverName) assigned — waiting for Transport Manager approval.
+            </div>
+        }
+        else if (Model.TransportAssignment.ApprovalStatus == TransportApprovalStatus.Approved)
+        {
+            <div class="alert alert-success mb-0">
+                <i class="bi bi-check-circle"></i> Transport approved — vehicle <strong>@Model.TransportAssignment.Vehicle?.PlateNumber</strong>
+                (@Model.TransportAssignment.Vehicle?.DriverName). You can now approve this session request.
+            </div>
+        }
+        else if (Model.TransportAssignment.ApprovalStatus == TransportApprovalStatus.Rejected)
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-x-circle"></i> Transport was rejected: @Model.TransportAssignment.RejectionNotes
+            </div>
+            @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.ProjectManager))
+            {
+                <form asp-action="AssignTransport" method="post" class="row g-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="sessionRequestId" value="@Model.Id" />
+                    <div class="col-md-5">
+                        <select name="vehicleId" class="form-select form-select-sm" required>
+                            <option value="">-- Select a different Vehicle --</option>
+                            @foreach (var v in vehicles)
+                            {
+                                <option value="@v.Id">@v.PlateNumber - @v.Model (@v.DriverName)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-5"><input name="notes" class="form-control form-control-sm" placeholder="Notes (optional)" /></div>
+                    <div class="col-md-2"><button type="submit" class="btn btn-sm btn-brand w-100">Reassign</button></div>
+                </form>
+            }
+        }
+    </div>
+}
+
+@{
+    var canDecide = Model.LocationType == LocationType.Indoor
+        || Model.TransportAssignment?.ApprovalStatus == TransportApprovalStatus.Approved;
+}
+
+@if (Model.Status == RequestStatus.Pending && (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.ProjectManager)))
+{
+    <div class="section-header">Decision</div>
+    <div class="section-body">
+        @if (!canDecide)
+        {
+            <p class="text-muted small mb-0"><i class="bi bi-lock"></i> Approve/Reject is disabled until transport is approved for this outdoor session.</p>
+        }
+        else
+        {
+            <form asp-action="Decide" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="form-label">Notes (optional)</label>
+                    <textarea name="notes" class="form-control" rows="2"></textarea>
+                </div>
+                <button type="submit" name="decision" value="Approved" class="btn btn-brand">Approve</button>
+                <button type="submit" name="decision" value="Rejected" class="btn btn-outline-danger">Reject</button>
+            </form>
+        }
+    </div>
+}
+
+<a asp-action="Index" class="btn btn-outline-secondary mt-3">Back to list</a>

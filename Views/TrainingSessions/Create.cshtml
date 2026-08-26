@@ -1,0 +1,44 @@
+@model TrainingSession
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{ ViewData["Title"] = "Schedule Training"; var companies = (List<Company>)ViewBag.Companies; var trainers = (List<Trainer>)ViewBag.Trainers; }
+
+<h5 class="mb-3"><i class="bi bi-calendar-week"></i> Schedule Training Session</h5>
+<div class="card p-4" style="max-width:650px">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+        <div class="mb-3">
+            <label class="form-label">Company</label>
+            <select asp-for="CompanyId" class="form-select" asp-items="@(new SelectList(companies, "Id", "Name"))">
+                <option value="">-- Select Company --</option>
+            </select>
+        </div>
+        <div class="mb-3"><label class="form-label" asp-for="ConsultantName"></label><input asp-for="ConsultantName" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Module"></label><input asp-for="Module" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Location"></label><input asp-for="Location" class="form-control" /></div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3"><label class="form-label" asp-for="TrainingDate"></label><input asp-for="TrainingDate" type="date" class="form-control" /></div>
+            <div class="col-md-6 mb-3"><label class="form-label" asp-for="Duration"></label><input asp-for="Duration" type="number" step="0.5" class="form-control" /></div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3"><label class="form-label" asp-for="StartTime"></label><input asp-for="StartTime" type="time" class="form-control" /></div>
+            <div class="col-md-6 mb-3"><label class="form-label" asp-for="EndTime"></label><input asp-for="EndTime" type="time" class="form-control" /></div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Trainer</label>
+            <select asp-for="TrainerId" class="form-select" asp-items="@(new SelectList(trainers, "Id", "Name"))">
+                <option value="">-- Assign Trainer --</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" asp-for="Status"></label>
+            <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<SessionStatus>()"></select>
+        </div>
+
+        <button type="submit" class="btn btn-brand">Save</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

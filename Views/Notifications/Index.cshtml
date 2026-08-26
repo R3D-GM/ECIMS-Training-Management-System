@@ -1,0 +1,38 @@
+@model IEnumerable<Notification>
+@{ ViewData["Title"] = "Notifications"; ViewData["Subtitle"] = "All your recent alerts"; }
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-bell"></i> Notifications</div>
+        @if (Model.Any(n => !n.IsRead))
+        {
+            <form asp-action="MarkAllRead" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Mark all as read</button>
+            </form>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-bell-slash d-block mb-2"></i><p class="mb-0">No notifications yet.</p></div>
+    }
+    else
+    {
+        <div class="list-group list-group-flush">
+        @foreach (var n in Model)
+        {
+            <a asp-action="Open" asp-route-id="@n.Id" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start @(n.IsRead ? "" : "bg-light")">
+                <div>
+                    <div class="@(n.IsRead ? "" : "fw-semibold")">@n.Message</div>
+                    <div class="text-muted small">@n.CreatedDate.ToString("MMM dd, yyyy HH:mm")</div>
+                </div>
+                @if (!n.IsRead)
+                {
+                    <span class="badge badge-status-pending">New</span>
+                }
+            </a>
+        }
+        </div>
+    }
+</div>

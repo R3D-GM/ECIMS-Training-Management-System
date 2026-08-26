@@ -1,0 +1,60 @@
+@model IEnumerable<TransportAssignment>
+@{ ViewData["Title"] = "Transport Assignment"; ViewData["Subtitle"] = "Assign transport for training sessions"; }
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title">🚛 Transport Assignment</div>
+        <a asp-action="Create" class="btn btn-brand btn-sm"><i class="bi bi-plus-lg"></i> New Assignment</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-signpost-split d-block mb-2"></i><p class="mb-0">No active assignments</p></div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Training Session</th><th>Company</th><th>Vehicle</th><th>Departure</th><th>Return</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var t in Model)
+            {
+                <tr>
+                    @if (t.TrainingSession != null)
+                    {
+                        <td class="fw-semibold">@t.TrainingSession.Module <span class="text-muted small">(@t.TrainingSession.TrainingDate.ToString("MMM/dd/yy"))</span></td>
+                        <td>@t.TrainingSession.Company?.Name</td>
+                    }
+                    else
+                    {
+                        <td class="fw-semibold">@string.Join(", ", t.SessionRequests.Select(r => r.RequestedModule))</td>
+                        <td>@string.Join(", ", t.SessionRequests.Select(r => r.Company?.Name))</td>
+                    }
+                    <td>@t.Vehicle?.PlateNumber <span class="text-muted small">(@t.Vehicle?.DriverName)</span></td>
+                    <td>@(t.DepartureTime?.ToString("MMM/dd HH:mm") ?? "—")</td>
+                    <td>@(t.ReturnTime?.ToString("MMM/dd HH:mm") ?? "—")</td>
+                    <td><span class="badge badge-status-@t.Status.ToString().ToLower()">@t.Status</span></td>
+                    <td>
+                        @if (t.Status == TransportStatus.Assigned)
+                        {
+                            <form asp-action="RecordDeparture" asp-route-id="@t.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-brand">Record Departure</button>
+                            </form>
+                        }
+                        @if (t.Status == TransportStatus.Departed)
+                        {
+                            <form asp-action="RecordReturn" asp-route-id="@t.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-brand">Record Return</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+    <p class="text-muted small mt-3 mb-0">Consultant assigned as On Training will not be considered absent from the company.</p>
+</div>

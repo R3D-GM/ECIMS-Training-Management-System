@@ -1,0 +1,47 @@
+@model ProfileSettingsViewModel
+@{ ViewData["Title"] = "Settings"; ViewData["Subtitle"] = "Manage your profile and password"; }
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="panel h-100">
+            <div class="panel-head"><div class="panel-title"><i class="bi bi-person-circle"></i> Profile</div></div>
+            <form asp-action="UpdateProfile" method="post">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input name="FullName" value="@Model.FullName" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input value="@Model.Email" class="form-control" disabled />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Role</label>
+                    <input value="@Roles.Display(Model.Role)" class="form-control" disabled />
+                </div>
+                <button type="submit" class="btn btn-brand">Save Changes</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel h-100">
+            <div class="panel-head"><div class="panel-title"><i class="bi bi-shield-lock"></i> Change Password</div></div>
+            <form asp-action="ChangePassword" method="post">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="form-label">Current Password</label>
+                    <input type="password" name="currentPassword" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">New Password</label>
+                    <input type="password" name="newPassword" class="form-control" required minlength="6" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Confirm New Password</label>
+                    <input type="password" name="confirmPassword" class="form-control" required minlength="6" />
+                </div>
+                <button type="submit" class="btn btn-brand">Change Password</button>
+            </form>
+        </div>
+    </div>
+</div>

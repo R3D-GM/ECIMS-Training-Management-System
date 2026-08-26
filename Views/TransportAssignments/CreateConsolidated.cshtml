@@ -1,0 +1,60 @@
+@model IEnumerable<SessionRequest>
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Group Same-Site Requests";
+    ViewData["Subtitle"] = "Combine outdoor requests going to the same site into one vehicle";
+    var vehicles = (List<Vehicle>)ViewBag.Vehicles;
+}
+
+<div class="panel">
+    <div class="panel-head"><div class="panel-title"><i class="bi bi-people"></i> Group Outdoor Requests Into One Vehicle</div></div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-check2-circle d-block mb-2"></i><p class="mb-0">No unassigned outdoor requests right now.</p></div>
+    }
+    else
+    {
+        <p class="text-muted small">Tip: look for multiple rows with the same <strong>Location</strong> — that's when one vehicle can cover several departments instead of one each.</p>
+
+        <form asp-action="CreateConsolidated" method="post">
+            @Html.AntiForgeryToken()
+            <table class="table table-sm">
+                <thead><tr><th></th><th>Company</th><th>Module</th><th>Location</th><th>Requested Date</th><th>Requested By</th></tr></thead>
+                <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td><input type="checkbox" name="sessionRequestIds" value="@r.Id" class="form-check-input" /></td>
+                        <td>@r.Company?.Name</td>
+                        <td>@r.RequestedModule</td>
+                        <td class="fw-semibold">@r.Location</td>
+                        <td>@r.RequestedDate.ToString("MMM/dd/yy")</td>
+                        <td>@r.RequestedBy</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            <div class="row g-2 mt-2">
+                <div class="col-md-6">
+                    <label class="form-label">Vehicle</label>
+                    <select name="vehicleId" class="form-select" required>
+                        <option value="">-- Select Vehicle --</option>
+                        @foreach (var v in vehicles)
+                        {
+                            <option value="@v.Id">@v.PlateNumber - @v.Model (@v.DriverName)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Notes</label>
+                    <input name="notes" class="form-control" placeholder="Optional" />
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-brand mt-3"><i class="bi bi-check2"></i> Create Grouped Assignment (auto-approved)</button>
+            <a asp-action="PendingApprovals" class="btn btn-outline-secondary mt-3">Cancel</a>
+        </form>
+    }
+</div>

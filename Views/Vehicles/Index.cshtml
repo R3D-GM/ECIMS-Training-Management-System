@@ -1,0 +1,42 @@
+@model IEnumerable<Vehicle>
+@{ ViewData["Title"] = "Vehicles"; ViewData["Subtitle"] = "Manage the transport fleet"; }
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-truck-front"></i> Vehicles</div>
+        <a asp-action="Create" class="btn btn-brand btn-sm"><i class="bi bi-plus-lg"></i> Add Vehicle</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-truck d-block mb-2"></i><p class="mb-0">No vehicles found.</p></div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Plate Number</th><th>Model</th><th>Capacity</th><th>Driver</th><th>Driver Phone</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var v in Model)
+            {
+                <tr>
+                    <td class="fw-bold">@v.PlateNumber</td>
+                    <td>@v.Model</td>
+                    <td>@v.Capacity</td>
+                    <td>@v.DriverName</td>
+                    <td>@v.DriverPhone</td>
+                    <td><span class="badge @(v.Status == "Available" ? "badge-status-confirmed" : "badge-status-pending")">@v.Status</span></td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@v.Id" class="btn icon-btn btn-outline-brand" title="Edit"><i class="bi bi-pencil"></i></a>
+                        <form asp-action="Delete" asp-route-id="@v.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this vehicle?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn icon-btn btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>

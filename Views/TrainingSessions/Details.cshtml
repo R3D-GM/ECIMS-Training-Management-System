@@ -1,0 +1,108 @@
+@model TrainingSession
+@{ ViewData["Title"] = Model.Module; }
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <h5 class="mb-0"><i class="bi bi-calendar-week"></i> @Model.Module <span class="badge badge-status-@Model.Status.ToString().ToLower() ms-2">@Model.Status</span></h5>
+    <div>
+        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant))
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-brand">Edit</a>
+        }
+        @if ((User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Trainer)) && Model.Status != SessionStatus.Completed)
+        {
+            <form asp-action="CompleteSession" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-brand">Mark Completed</button>
+            </form>
+        }
+        @if (Model.Confirmation == null && (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant) || User.IsInRole(Roles.Trainer)))
+        {
+            <a asp-controller="TrainingConfirmations" asp-action="Create" asp-route-trainingSessionId="@Model.Id" class="btn btn-sm btn-brand">Create Confirmation</a>
+        }
+        else if (Model.Confirmation != null)
+        {
+            <a asp-controller="TrainingConfirmations" asp-action="Details" asp-route-id="@Model.Confirmation.Id" class="btn btn-sm btn-outline-brand">View Confirmation</a>
+        }
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="section-header">Training Details</div>
+        <div class="section-body">
+            <dl class="row mb-0 small">
+                <dt class="col-5">Company</dt><dd class="col-7">@Model.Company?.Name</dd>
+                <dt class="col-5">Consultant</dt><dd class="col-7">@Model.ConsultantName</dd>
+                <dt class="col-5">Module</dt><dd class="col-7">@Model.Module</dd>
+                <dt class="col-5">Location</dt><dd class="col-7">@Model.Location</dd>
+                <dt class="col-5">Date</dt><dd class="col-7">@Model.TrainingDate.ToString("yyyy-MM-dd")</dd>
+                <dt class="col-5">Duration</dt><dd class="col-7">@Model.Duration hrs</dd>
+                <dt class="col-5">Start / End</dt><dd class="col-7">@Model.StartTime &ndash; @Model.EndTime</dd>
+                <dt class="col-5">Trainer</dt><dd class="col-7">@Model.Trainer?.Name</dd>
+                @if (Model.AttemptNumber > 1)
+                {
+                    <dt class="col-5">Attempt</dt><dd class="col-7">#@Model.AttemptNumber (retrain)</dd>
+                }
+            </dl>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="section-header">Trainee Information</div>
+        <div class="section-body">
+            @if (!Model.Trainees.Any())
+            {
+                <p class="text-muted small mb-2">No trainees registered yet.</p>
+            }
+            else
+            {
+                <table class="table table-sm mb-2">
+                    <thead><tr><th>#</th><th>Name</th><th>Position</th><th>Phone</th><th>Attendance</th></tr></thead>
+                    <tbody>
+                    @{ int i = 1; }
+                    @foreach (var tr in Model.Trainees)
+                    {
+                        <tr>
+                            <td>@(i++)</td>
+                            <td>@tr.Name</td>
+                            <td>@tr.Position</td>
+                            <td>@tr.Phone</td>
+                            <td>
+                                @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Trainer))
+                                {
+                                    <form asp-action="MarkAttendance" method="post" class="d-flex gap-1">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="traineeId" value="@tr.Id" />
+                                        <select name="attendance" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto">
+                                            <option value="Present" selected="@(tr.Attendance == AttendanceStatus.Present)">Present</option>
+                                            <option value="Absent" selected="@(tr.Attendance == AttendanceStatus.Absent)">Absent</option>
+                                        </select>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="badge @(tr.Attendance == AttendanceStatus.Present ? "badge-status-confirmed" : "badge-status-rejected")">@tr.Attendance</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+
+            @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant) || User.IsInRole(Roles.Trainer))
+            {
+                <form asp-action="AddTrainee" method="post" class="row g-2 mt-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="trainingSessionId" value="@Model.Id" />
+                    <div class="col-4"><input name="name" class="form-control form-control-sm" placeholder="Trainee name" required /></div>
+                    <div class="col-3"><input name="position" class="form-control form-control-sm" placeholder="Position" /></div>
+                    <div class="col-3"><input name="phone" class="form-control form-control-sm" placeholder="Phone" /></div>
+                    <div class="col-2"><button type="submit" class="btn btn-sm btn-brand w-100">Add</button></div>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+<a asp-action="Index" class="btn btn-outline-secondary mt-3">Back to schedule</a>

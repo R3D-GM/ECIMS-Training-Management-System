@@ -1,0 +1,90 @@
+@model UatProject
+@{
+    ViewData["Title"] = Model.ProjectName;
+    ViewData["Subtitle"] = $"{Model.CompanyBranch?.Company?.Name} / {Model.CompanyBranch?.BranchName}";
+    var current = Model.Attempts.OrderByDescending(a => a.AttemptNumber).FirstOrDefault();
+}
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-clipboard2-check"></i> @Model.ProjectName</div>
+        <span class="badge badge-status-@Model.Status.ToString().ToLower()">@Model.Status</span>
+    </div>
+
+    <div class="row g-2 mb-3 small">
+        <div class="col-md-4"><strong>Company:</strong> @Model.CompanyBranch?.Company?.Name</div>
+        <div class="col-md-4"><strong>Branch:</strong> @Model.CompanyBranch?.BranchName</div>
+        <div class="col-md-4"><strong>Consultant:</strong> @Model.Consultant?.FullName</div>
+        <div class="col-md-4"><strong>Project Manager:</strong> @Model.ProjectManager?.FullName</div>
+        <div class="col-md-4"><strong>Start:</strong> @Model.StartDate.ToString("MMM/dd/yy")</div>
+        <div class="col-md-4"><strong>End:</strong> @Model.EndDate.ToString("MMM/dd/yy")</div>
+    </div>
+
+    <div class="d-flex gap-2 mb-3">
+        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant))
+        {
+            @if (current is null || current.OverallStatus == AttemptOverallStatus.Declined)
+            {
+                <form asp-controller="UatChecklist" asp-action="StartAttempt" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="uatProjectId" value="@Model.Id" />
+                    <button type="submit" class="btn btn-brand"><i class="bi bi-play-fill"></i> @(current is null ? "Start UAT Checklist" : "Start Re-attempt")</button>
+                </form>
+            }
+            else if (current.OverallStatus == AttemptOverallStatus.InProgress)
+            {
+                <a asp-controller="UatChecklist" asp-action="Attempt" asp-route-id="@current.Id" class="btn btn-brand"><i class="bi bi-pencil-square"></i> Continue Checklist</a>
+            }
+        }
+        @if (current is not null && current.OverallStatus == AttemptOverallStatus.SubmittedForReview && (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.ContactPerson)))
+        {
+            <a asp-controller="UatChecklist" asp-action="Decide" asp-route-attemptId="@current.Id" class="btn btn-brand"><i class="bi bi-clipboard2-check"></i> Review &amp; Decide</a>
+        }
+        @if (current is not null && current.OverallStatus == AttemptOverallStatus.Accepted)
+        {
+            <a asp-controller="UatSignoff" asp-action="Index" asp-route-id="@current.Id" class="btn btn-brand"><i class="bi bi-pen"></i> Sign-off</a>
+        }
+        @if (current is not null && current.OverallStatus != AttemptOverallStatus.InProgress && current.OverallStatus != AttemptOverallStatus.SubmittedForReview)
+        {
+            <a asp-controller="UatChecklist" asp-action="View" asp-route-attemptId="@current.Id" class="btn btn-outline-secondary"><i class="bi bi-eye"></i> View Checklist</a>
+        }
+        @if (current is not null && current.OverallStatus == AttemptOverallStatus.SubmittedForReview && !User.IsInRole(Roles.Consultant))
+        {
+            <a asp-controller="UatChecklist" asp-action="View" asp-route-attemptId="@current.Id" class="btn btn-outline-secondary"><i class="bi bi-eye"></i> View Checklist</a>
+        }
+        @if (Model.Status == ProjectStatus.AwaitingConsultantSignature && (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant) || User.IsInRole(Roles.ProjectManager)))
+        {
+            <form asp-controller="UatProjects" asp-action="SendToCustomerService" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-send"></i> Send to Customer Service</button>
+            </form>
+        }
+    </div>
+
+    <h6 class="fw-bold mt-4 mb-2">Attempt History</h6>
+    @if (!Model.Attempts.Any())
+    {
+        <div class="empty-state"><i class="bi bi-clipboard2-x d-block mb-2"></i><p class="mb-0">No attempts started yet.</p></div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>#</th><th>Started</th><th>Submitted</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var a in Model.Attempts.OrderByDescending(a => a.AttemptNumber))
+            {
+                <tr>
+                    <td>@a.AttemptNumber</td>
+                    <td>@a.StartedDate.ToString("MMM/dd/yy")</td>
+                    <td>@(a.SubmittedDate?.ToString("MMM/dd/yy") ?? "-")</td>
+                    <td><span class="badge badge-status-@a.OverallStatus.ToString().ToLower()">@a.OverallStatus</span></td>
+                    <td><a asp-controller="UatChecklist" asp-action="View" asp-route-attemptId="@a.Id" class="btn icon-btn btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,23 @@
+@model Company
+@{ ViewData["Title"] = "Edit Company"; }
+
+<h5 class="mb-3"><i class="bi bi-building"></i> Edit Company</h5>
+<div class="card p-4" style="max-width:600px">
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+        <div class="mb-3"><label class="form-label" asp-for="Name"></label><input asp-for="Name" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Branch"></label><input asp-for="Branch" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Address"></label><input asp-for="Address" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="ContactPersonName"></label><input asp-for="ContactPersonName" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Phone"></label><input asp-for="Phone" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="TIN"></label><input asp-for="TIN" class="form-control" /></div>
+        <button type="submit" class="btn btn-brand">Save Changes</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        @if (User.IsInRole(Roles.Admin))
+        {
+            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger float-end">Delete</a>
+        }
+    </form>
+</div>
