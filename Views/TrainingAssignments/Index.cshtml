@@ -1,0 +1,86 @@
+@model TrainingAssignmentViewModel
+@{ ViewData["Title"] = "Training Assignment"; ViewData["Subtitle"] = "Track trainer departure and return for on-site training."; }
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-value" style="color:#7A1518">@Model.OnTrainingNow</div>
+            <div class="stat-label">On Training Now</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-value" style="color:#c47d0a">@Model.DepartureToday</div>
+            <div class="stat-label">Departure Today</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-value" style="color:#17924f">@Model.ReturningToday</div>
+            <div class="stat-label">Returning Today</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-value" style="color:#1a5fd0">@Model.UpcomingAssignments</div>
+            <div class="stat-label">Upcoming Assignments</div>
+        </div>
+    </div>
+</div>
+
+<div class="panel mb-0">
+    <div class="panel-head"><div class="panel-title"><i class="bi bi-person-check"></i> Active Training Assignments</div></div>
+
+    @if (!Model.ActiveAssignments.Any())
+    {
+        <div class="empty-state"><i class="bi bi-person-x d-block mb-2"></i><p class="mb-0">No active assignments</p></div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Trainer</th><th>Client/Company</th><th>Location</th><th>Training Module</th><th>Training Period</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var s in Model.ActiveAssignments)
+            {
+                <tr>
+                    <td class="fw-semibold">@(s.Trainer?.Name ?? s.ConsultantName)</td>
+                    <td>@s.Company?.Name</td>
+                    <td>@s.Location</td>
+                    <td>@s.Module</td>
+                    <td>@s.TrainingDate.ToString("MMM/dd/yy")</td>
+                    <td>
+                        @if (s.DepartureTime == null)
+                        {
+                            <span class="badge badge-status-scheduled">Not Departed</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-status-pending">On Training</span>
+                        }
+                    </td>
+                    <td>
+                        @if (s.DepartureTime == null)
+                        {
+                            <form asp-action="RecordDeparture" asp-route-id="@s.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-brand"><i class="bi bi-box-arrow-right"></i> Record Departure</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="RecordReturn" asp-route-id="@s.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-brand"><i class="bi bi-box-arrow-in-left"></i> Record Return</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+
+    <p class="text-muted small mt-3 mb-0">Trainers assigned as On Training will not be considered absent from the company.</p>
+</div>

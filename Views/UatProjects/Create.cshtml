@@ -1,0 +1,63 @@
+@model UatProject
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using TCS.Models
+@{
+    ViewData["Title"] = "New UAT Project";
+    var companies = (List<Company>)ViewBag.Companies;
+    var pms = (IList<ApplicationUser>)ViewBag.ProjectManagers;
+    var consultants = (IList<ApplicationUser>)ViewBag.Consultants;
+    int? selectedCompanyId = ViewBag.SelectedCompanyId;
+}
+
+<h5 class="mb-3"><i class="bi bi-clipboard2-plus"></i> New UAT Project</h5>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-warning">@TempData["Error"]</div>
+}
+
+<div class="card p-4" style="max-width:650px">
+    @if (!companies.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-lock-fill d-block mb-2"></i>
+            <p class="mb-0">No company is ready for UAT yet. A company only unlocks once every training booked for it is completed.</p>
+        </div>
+    }
+    else
+    {
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+            <div class="mb-3">
+                <label class="form-label">Company</label>
+                <select name="companyId" class="form-select" asp-items="@(new SelectList(companies, "Id", "Name", selectedCompanyId))">
+                    <option value="">-- Select Company (UAT-ready only) --</option>
+                </select>
+            </div>
+            <div class="mb-3"><label class="form-label" asp-for="ProjectName"></label><input asp-for="ProjectName" class="form-control" placeholder="e.g. NVS POS Go-Live UAT" /></div>
+
+            <div class="mb-3">
+                <label class="form-label">Consultant</label>
+                <select asp-for="ConsultantId" class="form-select" asp-items="@(new SelectList(consultants, "Id", "FullName"))">
+                    <option value="">-- Assign Consultant --</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Project Manager</label>
+                <select asp-for="ProjectManagerId" class="form-select" asp-items="@(new SelectList(pms, "Id", "FullName"))">
+                    <option value="">-- Assign Project Manager --</option>
+                </select>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3"><label class="form-label" asp-for="StartDate"></label><input asp-for="StartDate" type="date" class="form-control" /></div>
+                <div class="col-md-6 mb-3"><label class="form-label" asp-for="EndDate"></label><input asp-for="EndDate" type="date" class="form-control" /></div>
+            </div>
+
+            <button type="submit" class="btn btn-brand">Save</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+    }
+</div>

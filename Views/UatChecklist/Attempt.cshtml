@@ -1,0 +1,99 @@
+@model AttemptExecuteViewModel
+@{
+    ViewData["Title"] = $"UAT Checklist - {Model.ProjectName}";
+    ViewData["Subtitle"] = $"{Model.CompanyName} / {Model.BranchName} - Attempt #{Model.AttemptNumber}";
+}
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-clipboard2-check"></i> @Model.ProjectName</div>
+        <span class="badge badge-status-@Model.StatusCssClass">@Model.StatusLabel</span>
+    </div>
+
+    <div class="row g-2 mb-3 small text-muted">
+        <div class="col-md-4"><strong>Company:</strong> @Model.CompanyName (@Model.BranchName)</div>
+        <div class="col-md-4"><strong>Project Manager:</strong> @Model.ProjectManagerName</div>
+        <div class="col-md-4"><strong>Progress:</strong> @Model.CompletedItems / @Model.TotalItems answered</div>
+    </div>
+
+    <div class="progress mb-3" style="height:8px">
+        <div class="progress-bar" role="progressbar" style="width:@(Model.TotalItems == 0 ? 0 : Model.CompletedItems * 100 / Model.TotalItems)%"></div>
+    </div>
+
+    @if (Model.IsReadOnly)
+    {
+        <div class="lock-banner @Model.LockBannerCssClass"><i class="bi bi-lock-fill"></i> @Model.LockBannerText</div>
+    }
+
+    <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+    <form asp-controller="UatChecklist" asp-action="SaveChecklist" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="attemptId" value="@Model.AttemptId" />
+
+        @for (int s = 0; s < Model.Sections.Count; s++)
+        {
+            var sec = Model.Sections[s];
+            <div class="mb-4">
+                <h6 class="fw-bold mb-2">@sec.SectionName</h6>
+                <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th style="width:40%">Item</th><th>Result</th><th>Comment</th><th>Evidence</th></tr></thead>
+                    <tbody>
+                    @for (int i = 0; i < sec.Items.Count; i++)
+                    {
+                        var item = sec.Items[i];
+                        <tr class="@(item.IsFlagged ? "table-warning" : "")">
+                            <td>
+                                @item.TestDescription
+                                @if (item.IsFlagged)
+                                {
+                                    <span class="badge badge-status-declined ms-1">Flagged</span>
+                                }
+                                @if (item.WasChanged)
+                                {
+                                    <div class="small text-muted">Edited after original answer@(item.CommentAuthorName is not null ? $" by {item.CommentAuthorName}" : "")</div>
+                                }
+                            </td>
+                            <td>
+                                <input type="hidden" name="items[@i].ResultId" value="@item.ResultId" />
+                                <select name="items[@i].PassStatus" class="form-select form-select-sm" style="min-width:110px" @(Model.IsReadOnly ? "disabled" : "")>
+                                    <option value="@((int)PassStatus.Pending)" selected="@(item.PassStatus == PassStatus.Pending)">Pending</option>
+                                    <option value="@((int)PassStatus.Pass)" selected="@(item.PassStatus == PassStatus.Pass)">Pass</option>
+                                    <option value="@((int)PassStatus.Fail)" selected="@(item.PassStatus == PassStatus.Fail)">Fail</option>
+                                    <option value="@((int)PassStatus.NA)" selected="@(item.PassStatus == PassStatus.NA)">N/A</option>
+                                </select>
+                            </td>
+                            <td><input type="text" name="items[@i].Comment" value="@item.Comment" class="form-control form-control-sm" placeholder="Required if Fail" @(Model.IsReadOnly ? "disabled" : "") /></td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.EvidencePath))
+                                {
+                                    <a href="@item.EvidencePath" target="_blank" class="small">View file</a>
+                                }
+                                @if (!Model.IsReadOnly)
+                                {
+                                    <input type="file" name="items[@i].EvidenceFile" class="form-control form-control-sm mt-1" />
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        }
+
+        @if (!Model.IsReadOnly)
+        {
+            <div class="d-flex gap-2">
+                <button type="submit" name="action" value="save" class="btn btn-outline-secondary"><i class="bi bi-save"></i> Save Progress</button>
+                <button type="submit" name="action" value="submit" class="btn btn-brand"><i class="bi bi-send-check"></i> Submit for Customer Review</button>
+                <a asp-controller="UatProjects" asp-action="Details" asp-route-id="@Model.UatProjectId" class="btn btn-outline-secondary">Back to Project</a>
+            </div>
+        }
+        else
+        {
+            <a asp-controller="UatProjects" asp-action="Details" asp-route-id="@Model.UatProjectId" class="btn btn-outline-secondary">Back to Project</a>
+        }
+    </form>
+</div>

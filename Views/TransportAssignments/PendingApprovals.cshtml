@@ -1,0 +1,63 @@
+@model IEnumerable<TransportAssignment>
+@{ ViewData["Title"] = "Transport Approvals"; ViewData["Subtitle"] = "Approve vehicle assignments the Project Manager has made"; }
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-truck"></i> Pending Transport Approvals</div>
+        <a asp-action="CreateConsolidated" class="btn btn-outline-brand btn-sm"><i class="bi bi-people"></i> Group Same-Site Requests</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-truck d-block mb-2"></i><p class="mb-0">Nothing waiting on your approval.</p></div>
+    }
+    else
+    {
+        @foreach (var t in Model)
+        {
+            <div class="border rounded-3 p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                        <div class="fw-bold"><i class="bi bi-truck-front"></i> @t.Vehicle?.PlateNumber — @t.Vehicle?.Model</div>
+                        <div class="text-muted small">Driver: @t.Vehicle?.DriverName (@t.Vehicle?.DriverPhone)</div>
+                        <div class="text-muted small">Assigned by: @(t.AssignedByRole == Roles.ProjectManager ? "Project Manager" : t.AssignedByRole)</div>
+                        @if (!string.IsNullOrWhiteSpace(t.Notes))
+                        {
+                            <div class="text-muted small">Notes: @t.Notes</div>
+                        }
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-sm btn-brand" data-bs-toggle="collapse" data-bs-target="#reject-@t.Id">Reject</button>
+                        <form asp-action="ApproveTransport" asp-route-id="@t.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                        </form>
+                    </div>
+                </div>
+
+                <table class="table table-sm mt-2 mb-0">
+                    <thead><tr><th>Company</th><th>Module</th><th>Location</th><th>Requested Date</th></tr></thead>
+                    <tbody>
+                    @foreach (var r in t.SessionRequests)
+                    {
+                        <tr>
+                            <td>@r.Company?.Name</td>
+                            <td>@r.RequestedModule</td>
+                            <td>@r.Location</td>
+                            <td>@r.RequestedDate.ToString("MMM/dd/yy")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+
+                <div class="collapse mt-2" id="reject-@t.Id">
+                    <form asp-action="RejectTransport" asp-route-id="@t.Id" method="post" class="d-flex gap-2">
+                        @Html.AntiForgeryToken()
+                        <input name="notes" class="form-control form-control-sm" placeholder="Reason for rejection..." required />
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Confirm Reject</button>
+                    </form>
+                </div>
+            </div>
+        }
+    }
+</div>

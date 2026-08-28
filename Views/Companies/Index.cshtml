@@ -1,0 +1,48 @@
+@model IEnumerable<Company>
+@{ ViewData["Title"] = "Companies"; ViewData["Subtitle"] = "Manage client companies and branches"; }
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-building"></i> Companies</div>
+        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant))
+        {
+            <a asp-action="Create" class="btn btn-brand btn-sm"><i class="bi bi-plus-lg"></i> New Company</a>
+        }
+    </div>
+
+    <form method="get" class="mb-3" style="max-width:320px">
+        <input type="text" name="q" value="@ViewBag.Query" class="form-control form-control-sm" placeholder="Search company or branch..." />
+    </form>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-building-x d-block mb-2"></i><p class="mb-0">No companies found.</p></div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Name</th><th>Branch</th><th>Contact Person</th><th>Phone</th><th>TIN</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">@c.Name</td>
+                    <td>@c.Branch</td>
+                    <td>@c.ContactPersonName</td>
+                    <td>@c.Phone</td>
+                    <td>@c.TIN</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@c.Id" class="btn icon-btn btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
+                        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant))
+                        {
+                            <a asp-action="Edit" asp-route-id="@c.Id" class="btn icon-btn btn-outline-brand" title="Edit"><i class="bi bi-pencil"></i></a>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>

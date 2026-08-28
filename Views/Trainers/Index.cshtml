@@ -1,0 +1,53 @@
+@model IEnumerable<Trainer>
+@{
+    ViewData["Title"] = "Trainers"; ViewData["Subtitle"] = "Manage all trainers and their assignments.";
+    string[] avatarColors = { "#dbe7fd", "#d9f2e3", "#fdecd0", "#fbdadb" };
+    string[] avatarText = { "#1a5fd0", "#17924f", "#c47d0a", "#7A1518" };
+}
+
+<div class="d-flex gap-2 mb-3">
+    @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant))
+    {
+        <a asp-action="Create" class="btn btn-brand"><i class="bi bi-person-plus"></i> Add Trainer</a>
+        <button class="btn btn-outline-secondary" disabled><i class="bi bi-box-arrow-in-down"></i> Import</button>
+    }
+</div>
+
+<div class="row g-3">
+@{ int idx = 0; }
+@foreach (var t in Model)
+{
+    var initials = string.Join("", t.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])).ToUpper();
+    var c = idx % 4;
+    idx++;
+    <div class="col-md-6 col-lg-4">
+        <div class="panel h-100 mb-0">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div style="width:48px;height:48px;border-radius:50%;background:@avatarColors[c];color:@avatarText[c];display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">@initials</div>
+                <div>
+                    <div class="fw-bold">@t.Name</div>
+                    <div class="text-muted small">@t.Position</div>
+                </div>
+            </div>
+            <hr />
+            <div class="d-flex justify-content-between small mb-3">
+                <div><span class="text-muted">Email:</span><br /><span class="fw-semibold">@t.Email</span></div>
+                <div class="text-end"><span class="text-muted">Phone:</span><br /><span class="fw-semibold">@t.Phone</span></div>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-controller="TrainingSessions" asp-action="Create" class="btn btn-brand btn-sm flex-fill"><i class="bi bi-calendar-plus"></i> Assign Session</a>
+                <a asp-action="Details" asp-route-id="@t.Id" class="btn icon-btn btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
+                @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant))
+                {
+                    <a asp-action="Edit" asp-route-id="@t.Id" class="btn icon-btn btn-outline-brand" title="Edit"><i class="bi bi-pencil"></i></a>
+                }
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state"><i class="bi bi-person-x d-block mb-2"></i><p class="mb-0">No trainers found.</p></div>
+}

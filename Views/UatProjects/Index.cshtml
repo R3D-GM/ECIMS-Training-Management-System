@@ -1,0 +1,50 @@
+@model IEnumerable<UatProject>
+@{ ViewData["Title"] = "UAT Projects"; ViewData["Subtitle"] = "Manage all UAT projects across all companies."; }
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-clipboard2-check"></i> UAT Projects</div>
+        <div class="d-flex gap-2">
+            @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant) || User.IsInRole(Roles.ProjectManager))
+            {
+                <a asp-action="Create" class="btn btn-brand btn-sm"><i class="bi bi-plus-lg"></i> New UAT Project</a>
+            }
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-clipboard2-x d-block mb-2"></i>
+            <p class="mb-3">No UAT projects found.</p>
+            @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant) || User.IsInRole(Roles.ProjectManager))
+            {
+                <a asp-action="Create" class="btn btn-brand"><i class="bi bi-plus-lg"></i> Create Your First UAT Project</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Project</th><th>Company</th><th>Consultant</th><th>PM</th><th>Start</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">@p.ProjectName</td>
+                    <td>@p.CompanyBranch?.Company?.Name</td>
+                    <td>@p.Consultant?.FullName</td>
+                    <td>@p.ProjectManager?.FullName</td>
+                    <td>@p.StartDate.ToString("MMM/dd/yy")</td>
+                    <td><span class="badge badge-status-@p.Status.ToString().ToLower()">@p.Status</span></td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@p.Id" class="btn icon-btn btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>

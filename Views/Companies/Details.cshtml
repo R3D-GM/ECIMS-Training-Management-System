@@ -1,0 +1,45 @@
+@model Company
+@{ ViewData["Title"] = Model.Name; }
+
+<h5 class="mb-3"><i class="bi bi-building"></i> @Model.Name</h5>
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="section-header">Company Information</div>
+        <div class="section-body">
+            <dl class="row mb-0 small">
+                <dt class="col-5">Branch</dt><dd class="col-7">@Model.Branch</dd>
+                <dt class="col-5">Address</dt><dd class="col-7">@Model.Address</dd>
+                <dt class="col-5">Contact Person</dt><dd class="col-7">@Model.ContactPersonName</dd>
+                <dt class="col-5">Phone</dt><dd class="col-7">@Model.Phone</dd>
+                <dt class="col-5">TIN</dt><dd class="col-7">@Model.TIN</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="section-header">Training History</div>
+        <div class="section-body">
+            @if (!Model.TrainingSessions.Any())
+            {
+                <p class="text-muted small mb-0">No trainings recorded yet.</p>
+            }
+            else
+            {
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Date</th><th>Module</th><th>Status</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var s in Model.TrainingSessions.OrderByDescending(s => s.TrainingDate))
+                    {
+                        <tr>
+                            <td>@s.TrainingDate.ToString("yyyy-MM-dd")</td>
+                            <td>@s.Module</td>
+                            <td><span class="badge badge-status-@s.Status.ToString().ToLower()">@s.Status</span></td>
+                            <td><a asp-controller="TrainingSessions" asp-action="Details" asp-route-id="@s.Id" class="btn btn-sm btn-outline-secondary">View</a></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+<a asp-action="Index" class="btn btn-outline-secondary mt-3">Back to list</a>

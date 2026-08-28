@@ -1,0 +1,12 @@
+@model Company
+@{ ViewData["Title"] = "Delete Company"; }
+
+<h5 class="mb-3 text-danger"><i class="bi bi-exclamation-triangle"></i> Delete Company</h5>
+<div class="card p-4" style="max-width:500px">
+    <p>Are you sure you want to delete <strong>@Model.Name</strong>? This cannot be undone.</p>
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

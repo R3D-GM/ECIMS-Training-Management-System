@@ -1,0 +1,56 @@
+@model UserFormViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "New User";
+    var roles = (string[])ViewBag.Roles;
+    var trainers = (List<Trainer>)ViewBag.Trainers;
+    var companies = (List<Company>)ViewBag.Companies;
+}
+
+<h5 class="mb-3"><i class="bi bi-people"></i> New User Account</h5>
+<div class="card p-4" style="max-width:600px">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+        <div class="mb-3"><label class="form-label" asp-for="FullName"></label><input asp-for="FullName" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Email"></label><input asp-for="Email" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Password"></label><input asp-for="Password" type="password" class="form-control" /></div>
+
+        <div class="mb-3">
+            <label class="form-label">Role</label>
+            <select asp-for="Role" id="roleSelect" class="form-select"
+                    asp-items="@(new SelectList(roles.Select(r => new { Value = r, Text = Roles.Display(r) }), "Value", "Text"))">
+                <option value="">-- Select Role --</option>
+            </select>
+        </div>
+
+        <div class="mb-3" id="trainerLinkGroup" style="display:none">
+            <label class="form-label">Link to Trainer Record</label>
+            <select asp-for="TrainerId" class="form-select" asp-items="@(new SelectList(trainers, "Id", "Name"))">
+                <option value="">-- Select Trainer --</option>
+            </select>
+        </div>
+        <div class="mb-3" id="companyLinkGroup" style="display:none">
+            <label class="form-label">Link to Company (for Contact Person)</label>
+            <select asp-for="CompanyId" class="form-select" asp-items="@(new SelectList(companies, "Id", "Name"))">
+                <option value="">-- Select Company --</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-brand">Create Account</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    function toggleLinkGroups() {
+        var role = document.getElementById('roleSelect').value;
+        document.getElementById('trainerLinkGroup').style.display = role === 'Trainer' ? 'block' : 'none';
+        document.getElementById('companyLinkGroup').style.display = role === 'ContactPerson' ? 'block' : 'none';
+    }
+    document.getElementById('roleSelect').addEventListener('change', toggleLinkGroups);
+    toggleLinkGroups();
+</script>
+}

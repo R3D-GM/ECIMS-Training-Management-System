@@ -1,0 +1,62 @@
+@model IEnumerable<TrainingSession>
+@{ ViewData["Title"] = "Training Schedule"; ViewData["Subtitle"] = "Manage all training sessions across all branches."; }
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-calendar3"></i> Training Schedule</div>
+        <div class="d-flex gap-2">
+            <span class="text-muted small align-self-center d-none d-md-inline">Manage all training sessions</span>
+            @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant))
+            {
+                <a asp-action="Create" class="btn btn-brand btn-sm"><i class="bi bi-plus-lg"></i> New Training</a>
+            }
+        </div>
+    </div>
+
+    <form method="get" class="d-flex gap-2 mb-3 flex-wrap">
+        <select class="form-select form-select-sm" style="max-width:180px" disabled><option>All Sessions</option></select>
+        <input type="text" class="form-control form-control-sm" style="max-width:260px" placeholder="Search sessions..." disabled />
+        <button type="button" class="btn btn-sm btn-brand" disabled><i class="bi bi-search"></i> Search</button>
+    </form>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-calendar-x d-block mb-2"></i>
+            <p class="mb-3">No training sessions found.</p>
+            @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant))
+            {
+                <a asp-action="Create" class="btn btn-brand"><i class="bi bi-plus-lg"></i> Create New Training</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Module</th><th>Trainer</th><th>Location</th><th>Date</th><th>Time</th><th>Duration</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">@s.Module</td>
+                    <td>@s.Trainer?.Name</td>
+                    <td>@s.Location</td>
+                    <td>@s.TrainingDate.ToString("MMM/dd/yy")</td>
+                    <td>@s.StartTime</td>
+                    <td>@s.Duration hrs</td>
+                    <td><span class="badge badge-status-@s.Status.ToString().ToLower()">@s.Status</span></td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@s.Id" class="btn icon-btn btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
+                        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant))
+                        {
+                            <a asp-action="Edit" asp-route-id="@s.Id" class="btn icon-btn btn-outline-brand" title="Edit"><i class="bi bi-pencil"></i></a>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>

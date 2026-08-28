@@ -1,0 +1,72 @@
+@model IEnumerable<SessionRequest>
+@{ ViewData["Title"] = "Session Request"; ViewData["Subtitle"] = "Manage all session requests"; }
+
+<div class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="bi bi-clipboard-check"></i> Session Requests</div>
+        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Consultant))
+        {
+            <a asp-action="Create" class="btn btn-brand btn-sm"><i class="bi bi-plus-lg"></i> New Request</a>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><i class="bi bi-clipboard-x d-block mb-2"></i><p class="mb-0">No session requests found.</p></div>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table mb-0">
+            <thead><tr><th>Session ID</th><th>Company</th><th>Module</th><th>Location</th><th>Requested By</th><th>Start Date</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td class="fw-bold">SES-@r.Id.ToString("D5")</td>
+                    <td>@r.Company?.Name</td>
+                    <td>@r.RequestedModule</td>
+                    <td>
+                        @r.Location
+                        @if (r.LocationType == LocationType.Outdoor)
+                        {
+                            <br />
+                            @if (r.TransportAssignment == null)
+                            {
+                                <span class="badge badge-status-pending">Outdoor — no transport</span>
+                            }
+                            else if (r.TransportAssignment.ApprovalStatus == TransportApprovalStatus.Approved)
+                            {
+                                <span class="badge badge-status-confirmed">Outdoor — transport OK</span>
+                            }
+                            else if (r.TransportAssignment.ApprovalStatus == TransportApprovalStatus.Rejected)
+                            {
+                                <span class="badge badge-status-rejected">Outdoor — transport rejected</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-status-scheduled">Outdoor — awaiting TM</span>
+                            }
+                        }
+                        else
+                        {
+                            <br /><span class="badge badge-status-confirmed">Indoor</span>
+                        }
+                    </td>
+                    <td>@r.RequestedBy</td>
+                    <td>@r.RequestedDate.ToString("MMM/dd/yy")</td>
+                    <td><span class="badge badge-status-@r.Status.ToString().ToLower()">@r.Status</span></td>
+                    <td>
+                        <a asp-action="Review" asp-route-id="@r.Id" class="btn icon-btn btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
+                        @if ((User.IsInRole(Roles.Admin) || User.IsInRole(Roles.ProjectManager)) && r.Status == RequestStatus.Pending)
+                        {
+                            <a asp-action="Review" asp-route-id="@r.Id" class="btn icon-btn btn-outline-brand" title="Review"><i class="bi bi-pencil"></i></a>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</div>

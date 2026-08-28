@@ -1,0 +1,67 @@
+@model LoginViewModel
+@{ ViewData["Title"] = "Login"; Layout = "_Layout"; }
+
+<div class="login-page">
+    <div class="login-shell">
+        <div class="login-form-side">
+            <div class="login-brand">
+                <img src="~/images/aleke.png" alt="RedCloud" class="login-brand-img" />
+                <div class="name">ECIMS<span class="dot">.</span></div>
+            </div>
+
+            <h2>Welcome Back</h2>
+            <p class="text-muted mb-4">Sign in to continue</p>
+
+            <form asp-controller="Account" asp-action="Login" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" asp-for="Email">Email Address</label>
+                    <input asp-for="Email" class="form-control form-control-lg" placeholder="admin@company.com" autofocus />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" asp-for="Password">Password</label>
+                    <input asp-for="Password" class="form-control form-control-lg" type="password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input asp-for="RememberMe" class="form-check-input" checked />
+                        <label class="form-check-label small" asp-for="RememberMe">Remember me</label>
+                    </div>
+                    <a asp-action="ForgotPassword" class="small text-decoration-none" style="color:#7A1518">Forgot Password?</a>
+                </div>
+                <button type="submit" class="btn btn-brand btn-lg w-100"><i class="bi bi-box-arrow-in-right"></i> Login</button>
+            </form>
+
+            <p class="text-center text-muted small mt-4 mb-0">Enterprise Customer Implementation Management System</p>
+
+            <details class="mt-3 small text-muted">
+                <summary style="cursor:pointer;color:#7A1518;font-weight:600">Demo accounts (password: admin123)</summary>
+                <ul class="mt-2 mb-0 ps-3">
+                    <li>admin@company.com — System Admin</li>
+                    <li>consultant@company.com — Functional Consultant</li>
+                    <li>pm@company.com — Project Manager</li>
+                    <li>transport@company.com — Transport Manager</li>
+                    <li>contact@company.com — Contact Person</li>
+                    <li>trainer@company.com — Trainer</li>
+                </ul>
+            </details>
+        </div>
+
+        <div class="login-panel-side">
+            <img src="~/images/aleke.png" alt="RedCloud" class="logo-box-img" />
+            <h3>ECIMS</h3>
+            <p>Enterprise Customer Implementation Management System. Manage training sessions, confirmations, approvals, and customer implementation through one centralized system.</p>
+            <div class="login-feature-grid">
+                <div class="lf"><i class="bi bi-calendar-check"></i>Training</div>
+                <div class="lf"><i class="bi bi-people-fill"></i>Management</div>
+                <div class="lf"><i class="bi bi-pencil-square"></i>Confirmation</div>
+                <div class="lf"><i class="bi bi-graph-up"></i>Analytics</div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,20 @@
+@model Trainee
+@{ ViewData["Title"] = "Edit Trainee"; }
+
+<div class="panel" style="max-width:600px">
+    <div class="panel-head"><div class="panel-title"><i class="bi bi-pencil"></i> Edit Trainee</div></div>
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="TrainingSessionId" />
+        <div class="mb-3"><label class="form-label" asp-for="Name"></label><input asp-for="Name" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Position"></label><input asp-for="Position" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Phone"></label><input asp-for="Phone" class="form-control" /></div>
+        <div class="mb-3">
+            <label class="form-label" asp-for="Attendance"></label>
+            <select asp-for="Attendance" class="form-select" asp-items="Html.GetEnumSelectList<AttendanceStatus>()"></select>
+        </div>
+        <button type="submit" class="btn btn-brand">Save Changes</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

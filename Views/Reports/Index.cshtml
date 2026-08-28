@@ -1,0 +1,120 @@
+@model ReportsViewModel
+@{ ViewData["Title"] = "Reports & Analytics"; ViewData["Subtitle"] = "View training performance and completion reports."; }
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-top"><div class="stat-icon red"><i class="bi bi-calendar-check-fill"></i></div></div>
+            <div class="stat-value">@Model.TotalSessions</div>
+            <div class="stat-label">Total Trainings</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-top"><div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div></div>
+            <div class="stat-value">@Model.CompletedSessions</div>
+            <div class="stat-label">Completed</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-top"><div class="stat-icon orange"><i class="bi bi-clock-fill"></i></div></div>
+            <div class="stat-value">@Model.ScheduledSessions</div>
+            <div class="stat-label">Pending</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-top"><div class="stat-icon blue"><i class="bi bi-percent"></i></div></div>
+            <div class="stat-value">@(Model.TotalSessions == 0 ? 0 : Model.CompletedSessions * 100 / Model.TotalSessions)%</div>
+            <div class="stat-label">Completion Rate</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="panel h-100 mb-0">
+            <div class="panel-head"><div class="panel-title">Training by Module</div></div>
+            @if (!Model.SessionsByModule.Any())
+            {
+                <div class="empty-state py-4"><p class="mb-0">No data available</p></div>
+            }
+            else
+            {
+                @foreach (var m in Model.SessionsByModule)
+                {
+                    var pct = Model.TotalSessions == 0 ? 0 : (m.Count * 100 / Model.TotalSessions);
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small"><span>@m.Module</span><span>@m.Count</span></div>
+                        <div class="progress" style="height:6px"><div class="progress-bar" style="background:#7A1518;width:@(pct)%"></div></div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel h-100 mb-0">
+            <div class="panel-head"><div class="panel-title">Quick Stats</div></div>
+            <div class="row g-2">
+                <div class="col-6">
+                    <div class="p-3 rounded-3" style="background:#f7f8fb">
+                        <div class="fw-bold fs-4" style="color:#1a5fd0">@Model.TotalSessions</div>
+                        <div class="text-muted small">Total Sessions</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 rounded-3" style="background:#f7f8fb">
+                        <div class="fw-bold fs-4" style="color:#17924f">@Model.CompletedSessions</div>
+                        <div class="text-muted small">Completed</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 rounded-3" style="background:#f7f8fb">
+                        <div class="fw-bold fs-4" style="color:#c47d0a">@Model.ScheduledSessions</div>
+                        <div class="text-muted small">Pending</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 rounded-3" style="background:#f7f8fb">
+                        <div class="fw-bold fs-4" style="color:#7A1518">@Model.SessionsByCompany.Count</div>
+                        <div class="text-muted small">Total Companies</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="panel mb-0">
+            <div class="panel-head"><div class="panel-title">Confirmation Funnel</div></div>
+            <dl class="row mb-0 small">
+                <dt class="col-7">Pending</dt><dd class="col-5"><span class="badge badge-status-pending">@Model.PendingConfirmations</span></dd>
+                <dt class="col-7">Confirmed</dt><dd class="col-5"><span class="badge badge-status-confirmed">@Model.ConfirmedConfirmations</span></dd>
+                <dt class="col-7">Rejected</dt><dd class="col-5"><span class="badge badge-status-rejected">@Model.RejectedConfirmations</span></dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel mb-0">
+            <div class="panel-head"><div class="panel-title">Transport Overview</div></div>
+            <dl class="row mb-0 small">
+                <dt class="col-7">Total Transport Assignments</dt><dd class="col-5">@Model.TransportAssignments</dd>
+                <dt class="col-7">Completed (Returned)</dt><dd class="col-5">@Model.TransportCompleted</dd>
+                <dt class="col-7">Total Training Hours</dt><dd class="col-5">@Model.TotalTrainingHours</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<div class="panel mb-0">
+    <div class="panel-head"><div class="panel-title">Export Reports</div></div>
+    <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-brand" disabled><i class="bi bi-filetype-pdf"></i> Export PDF</button>
+        <button class="btn btn-outline-secondary" disabled><i class="bi bi-filetype-xlsx"></i> Export Excel</button>
+        <button class="btn btn-outline-secondary" disabled><i class="bi bi-filetype-csv"></i> Export CSV</button>
+        <button class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+    </div>
+</div>

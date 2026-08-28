@@ -1,0 +1,68 @@
+@model Trainer
+@{ ViewData["Title"] = Model.Name; }
+
+<h5 class="mb-3"><i class="bi bi-person-badge"></i> @Model.Name</h5>
+<div class="row g-3">
+    <div class="col-md-5">
+        <div class="section-header">Trainer Information</div>
+        <div class="section-body">
+            <dl class="row mb-0 small">
+                <dt class="col-5">Position</dt><dd class="col-7">@Model.Position</dd>
+                <dt class="col-5">Department</dt><dd class="col-7">@Model.Department</dd>
+                <dt class="col-5">Email</dt><dd class="col-7">@Model.Email</dd>
+                <dt class="col-5">Phone</dt><dd class="col-7">@Model.Phone</dd>
+            </dl>
+        </div>
+
+        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Trainer))
+        {
+            <div class="section-header mt-3">Default Signature</div>
+            <div class="section-body">
+                @if (!string.IsNullOrEmpty(Model.SignaturePath))
+                {
+                    <img src="@Model.SignaturePath" class="sig-existing mb-2" />
+                    <div class="text-muted small">Signature on file. Sign again below to replace it.</div>
+                }
+                <div class="sig-pad-wrap mt-2"><canvas id="sigCanvas"></canvas></div>
+                <form asp-action="SaveSignature" method="post" class="mt-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="signatureData" id="sigInput" />
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="clearSig">Clear</button>
+                    <button type="submit" class="btn btn-sm btn-brand">Save Signature</button>
+                </form>
+            </div>
+        }
+    </div>
+    <div class="col-md-7">
+        <div class="section-header">Assigned Training Sessions</div>
+        <div class="section-body">
+            @if (!Model.TrainingSessions.Any())
+            {
+                <p class="text-muted small mb-0">No sessions assigned yet.</p>
+            }
+            else
+            {
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Date</th><th>Module</th><th>Company</th><th>Status</th></tr></thead>
+                    <tbody>
+                    @foreach (var s in Model.TrainingSessions.OrderByDescending(s => s.TrainingDate))
+                    {
+                        <tr>
+                            <td>@s.TrainingDate.ToString("yyyy-MM-dd")</td>
+                            <td>@s.Module</td>
+                            <td>@s.Company?.Name</td>
+                            <td><span class="badge badge-status-@s.Status.ToString().ToLower()">@s.Status</span></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+<a asp-action="Index" class="btn btn-outline-secondary mt-3">Back to list</a>
+
+@section Scripts {
+<script>initSignaturePad('sigCanvas', 'sigInput', 'clearSig');</script>
+}

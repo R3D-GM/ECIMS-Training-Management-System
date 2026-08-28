@@ -1,0 +1,18 @@
+@model Company
+@{ ViewData["Title"] = "New Company"; }
+
+<h5 class="mb-3"><i class="bi bi-building"></i> New Company</h5>
+<div class="card p-4" style="max-width:600px">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+        <div class="mb-3"><label class="form-label" asp-for="Name"></label><input asp-for="Name" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Branch"></label><input asp-for="Branch" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Address"></label><input asp-for="Address" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="ContactPersonName"></label><input asp-for="ContactPersonName" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="Phone"></label><input asp-for="Phone" class="form-control" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="TIN"></label><input asp-for="TIN" class="form-control" /></div>
+        <button type="submit" class="btn btn-brand">Save</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>
